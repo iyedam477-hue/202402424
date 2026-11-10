@@ -61,7 +61,7 @@ const CHAPTERS = [
 ];
 
 const TOOL_NAMES = { Ps: 'Photoshop', Ai: 'Illustrator', Id: 'InDesign' };
-const img = (n) => `images/works-${String(n).padStart(2, '0')}.jpg`;
+const img = (n) => `works-${String(n).padStart(2, '0')}.jpg`;
 const toolIcons = (tools) =>
   tools.map((t) => `<span class="skill-icon sm ${t.toLowerCase()}" title="${TOOL_NAMES[t]}">${t}</span>`).join('');
 
