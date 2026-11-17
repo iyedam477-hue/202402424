@@ -67,45 +67,54 @@ const toolIcons = (tools) =>
 
 /* ============ 포트폴리오 렌더링 ============ */
 const chaptersEl = document.getElementById('chapters');
-const chapterNav = document.querySelector('.chapter-nav');
+const indexEl = document.getElementById('index-cols');
 const allProjects = [];
+const plain = (s) => s.replace(/"/g, '');
+const metaRows = (p) => `
+  <div><dt>TOOL</dt><dd class="tool-icons">${toolIcons(p.tools)}</dd></div>
+  <div><dt>ROLE</dt><dd>${p.role}</dd></div>
+  <div><dt>PAGE</dt><dd>${p.images.length}장</dd></div>`;
 
 CHAPTERS.forEach((ch) => {
-  chapterNav.insertAdjacentHTML('beforeend',
-    `<a href="#chapter-${ch.no}" style="--accent:${ch.color}"><b>${ch.no}</b>${ch.title.replace(/"/g, '')}</a>`);
+  /* INDEX: 챕터별 작품 목록 */
+  indexEl.insertAdjacentHTML('beforeend', `
+    <div class="index-col">
+      <h3>${ch.no} <small>${plain(ch.title)}</small></h3>
+      ${ch.projects.map((p, i) => `<a href="#work-${ch.no}-${i + 1}">${p.title}</a>`).join('')}
+    </div>`);
 
-  const projectsHtml = ch.projects.map((p) => {
+  /* 작품 */
+  const projectsHtml = ch.projects.map((p, i) => {
     const idx = allProjects.push({ ...p, chapter: ch }) - 1;
     return `
-      <article class="project" data-reveal>
-        <button class="project-media" data-open="${idx}" aria-label="${p.title} 크게 보기">
-          <img src="${img(p.images[0])}" alt="${p.title} — ${p.type}" loading="lazy">
-          ${p.images.length > 1 ? `<span class="media-count">+${p.images.length - 1}</span>` : ''}
-        </button>
-        <div class="project-info">
+      <article class="project" id="work-${ch.no}-${i + 1}">
+        <div class="project-meta" data-reveal>
+          <p class="project-no">${ch.no} — ${String(i + 1).padStart(2, '0')}</p>
           <h3>${p.title}</h3>
           <p class="project-type">${p.type}</p>
-          <dl class="project-table">
-            <div><dt>TOOL</dt><dd class="tool-icons">${toolIcons(p.tools)}</dd></div>
-            <div><dt>ROLE</dt><dd>${p.role}</dd></div>
-            <div><dt>PAGE</dt><dd>${p.images.length}장</dd></div>
-          </dl>
+          <dl class="rows sm">${metaRows(p)}</dl>
           <p class="project-overview">${p.overview[0]}</p>
-          <button class="btn-more" data-open="${idx}">자세히 보기</button>
+          <button class="btn-more" data-open="${idx}">VIEW MORE <span aria-hidden="true">→</span></button>
         </div>
+        <button class="project-media" data-open="${idx}" aria-label="${p.title} 크게 보기" data-reveal>
+          <img src="${img(p.images[0])}" alt="${p.title} — ${p.type}" loading="lazy">
+          ${p.images.length > 1 ? `<span class="media-count">+${p.images.length - 1} MORE</span>` : ''}
+        </button>
       </article>`;
   }).join('');
 
+  /* 챕터 띠 (첫 작품 이미지를 어둡게 깔아 배경으로) */
   chaptersEl.insertAdjacentHTML('beforeend', `
     <section class="chapter" id="chapter-${ch.no}" style="--accent:${ch.color}">
-      <header class="chapter-head" data-reveal>
-        <span class="chapter-no">${ch.no}</span>
-        <div>
+      <header class="chapter-band" style="--bg-img:url('${img(ch.projects[0].images[0])}')">
+        <div class="shell"><p class="label"><span class="dot accent"></span>CHAPTER ${ch.no}</p></div>
+        <div class="shell">
           <h2>${ch.title}</h2>
-          <p>${ch.desc}</p>
+          <p class="desc">${ch.desc}</p>
         </div>
+        <span class="chapter-no" aria-hidden="true">${ch.no}</span>
       </header>
-      ${projectsHtml}
+      <div class="shell projects">${projectsHtml}</div>
     </section>`);
 });
 
@@ -129,11 +138,12 @@ function openModal(idx) {
   current = allProjects[idx];
   page = 0;
   lastFocus = document.activeElement;
-  document.getElementById('modal-chapter').textContent = `${current.chapter.no}  ${current.chapter.title}`;
-  document.getElementById('modal-chapter').style.setProperty('--accent', current.chapter.color);
+  const chapterEl = document.getElementById('modal-chapter');
+  chapterEl.innerHTML = `<span class="dot"></span>CHAPTER ${current.chapter.no} · ${plain(current.chapter.title)}`;
+  chapterEl.style.setProperty('--accent', current.chapter.color);
   document.getElementById('modal-title').textContent = current.title;
-  document.getElementById('modal-type').innerHTML =
-    `${current.type}<span class="tool-icons">${toolIcons(current.tools)}</span><span>${current.role}</span>`;
+  document.getElementById('modal-type').textContent = current.type;
+  document.getElementById('modal-rows').innerHTML = metaRows(current);
   document.getElementById('modal-overview').innerHTML = current.overview.map((t) => `<p>${t}</p>`).join('');
   showPage();
   modal.classList.add('is-open');
@@ -184,7 +194,7 @@ if ('IntersectionObserver' in window) {
 
 /* ============ 메뉴 활성화 ============ */
 const navLinks = document.querySelectorAll('.gnb-menu a');
-const sectionIds = ['home', 'about', 'portfolio', 'contact'];
+const sectionIds = ['home', 'about', 'works', 'contact'];
 function updateNav() {
   const y = window.scrollY + window.innerHeight * 0.35;
   let active = 'home';
