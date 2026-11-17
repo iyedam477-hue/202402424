@@ -195,5 +195,13 @@ function updateNav() {
   if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 4) active = 'contact';
   navLinks.forEach((a) => a.classList.toggle('is-active', a.getAttribute('href') === `#${active}`));
 }
-window.addEventListener('scroll', updateNav, { passive: true });
+/* ============ 상단 스크롤 진행 바 ============ */
+const progressBar = document.querySelector('.progress-bar');
+function updateProgress() {
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  progressBar.style.transform = `scaleX(${max > 0 ? window.scrollY / max : 0})`;
+}
+
+window.addEventListener('scroll', () => { updateNav(); updateProgress(); }, { passive: true });
 updateNav();
+updateProgress();
